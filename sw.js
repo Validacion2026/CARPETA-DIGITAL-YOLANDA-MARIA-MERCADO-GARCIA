@@ -1,4 +1,4 @@
-const CACHE_NAME = 'carpeta-virtual-v3'; // <-- Recuerda subir la versión
+const CACHE_NAME = 'carpeta-virtual-v4'; // <-- Cambia a v4
 
 const ARCHIVOS_OFFLINE = [
   './',
@@ -16,7 +16,7 @@ const ARCHIVOS_OFFLINE = [
   './ddr.pdf'
 ];
 
-// Al instalar, toma el control de inmediato
+// Al instalar, fuerza a tomar el control inmediatamente
 self.addEventListener('install', event => {
   self.skipWaiting();
   event.waitUntil(
@@ -30,7 +30,7 @@ self.addEventListener('install', event => {
   );
 });
 
-// Al activar, borra cualquier memoria vieja
+// Al activar, borra versiones viejas y reclama clientes
 self.addEventListener('activate', event => {
   event.waitUntil(
     caches.keys().then(keys => {
@@ -45,7 +45,6 @@ self.addEventListener('activate', event => {
 
 // NETWORK FIRST
 self.addEventListener('fetch', event => {
-  // Solo procesar peticiones GET dentro de tu propio origen (ignora Google Apps Script y extensiones)
   if (event.request.method !== 'GET' || !event.request.url.startsWith(self.location.origin)) {
     return;
   }
