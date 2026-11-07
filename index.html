@@ -707,11 +707,9 @@
     const error = document.getElementById("errorRecuperacion");
     const docIngresado = input ? input.value.trim() : "";
 
-    // Valida contra el número de cédula configurado para el titular
     if (docIngresado === DATOS_TITULAR.identificacion.trim()) {
       cerrarModalRecuperacion();
 
-      // Limpia la clave anterior y abre el asistente de asignación de nueva clave
       localStorage.removeItem("tf_pin_usuario");
       localStorage.removeItem("tf_pin_cambiado");
 
@@ -901,19 +899,39 @@
     }
   }
 
-  // SERVICE WORKER
+  // ==============================================================
+  // REGISTRO DE SERVICE WORKER CON BÚSQUEDA FORZADA DE ACTUALIZACIONES
+  // ==============================================================
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', function() {
-      navigator.serviceWorker.register('./sw.js').then(function(reg) {
-        reg.onupdatefound = function() {
-          const installingWorker = reg.installing;
-          installingWorker.onstatechange = function() {
-            if (installingWorker.state === 'installed' && navigator.serviceWorker.controller) {
-              window.location.reload();
-            }
+      // updateViaCache: 'none' desactiva la memoria caché HTTP para sw.js
+      navigator.serviceWorker.register('./sw.js', { updateViaCache: 'none' })
+        .then(function(reg) {
+          // Fuerza al navegador a comprobar de inmediato si sw.js cambió en GitHub
+          reg.update();
+
+          reg.onupdatefound = function() {
+            const installingWorker = reg.installing;
+            installingWorker.onstatechange = function() {
+              if (installingWorker.state === 'installed') {
+                if (navigator.serviceWorker.controller) {
+                  // Nueva versión instalada: recarga automáticamente para mostrar los cambios
+                  window.location.reload();
+                }
+              }
+            };
           };
-        };
-      }).catch(function(e) { console.log('Error offline', e); });
+        })
+        .catch(function(e) { console.log('Error offline', e); });
+
+      // Si el Service Worker activo toma el control en caliente, recarga la vista
+      let refrescando = false;
+      navigator.serviceWorker.addEventListener('controllerchange', function() {
+        if (!refrescando) {
+          refrescando = true;
+          window.location.reload();
+        }
+      });
     });
   }
 </script>
