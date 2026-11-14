@@ -1,4 +1,4 @@
-const CACHE_NAME = 'carpeta-virtual-v4'; // <-- Cambia a v4
+const CACHE_NAME = 'carpeta-virtual-v5';
 
 const ARCHIVOS_OFFLINE = [
   './',
@@ -16,7 +16,6 @@ const ARCHIVOS_OFFLINE = [
   './ddr.pdf'
 ];
 
-// Al instalar, fuerza a tomar el control inmediatamente
 self.addEventListener('install', event => {
   self.skipWaiting();
   event.waitUntil(
@@ -30,7 +29,6 @@ self.addEventListener('install', event => {
   );
 });
 
-// Al activar, borra versiones viejas y reclama clientes
 self.addEventListener('activate', event => {
   event.waitUntil(
     caches.keys().then(keys => {
@@ -43,7 +41,7 @@ self.addEventListener('activate', event => {
   );
 });
 
-// NETWORK FIRST
+// NETWORK FIRST con ignoreSearch para evitar errores con ?v=1
 self.addEventListener('fetch', event => {
   if (event.request.method !== 'GET' || !event.request.url.startsWith(self.location.origin)) {
     return;
@@ -60,7 +58,6 @@ self.addEventListener('fetch', event => {
         }
         return response;
       })
-      .catch(() => caches.match(event.request))
+      .catch(() => caches.match(event.request, { ignoreSearch: true }))
   );
 });
-
